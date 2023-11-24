@@ -12,8 +12,14 @@ while True:
     # Read a frame from the video capture object
     check, frame = video.read()
 
+    # Convert the frame to grayscale
+    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Apply Gaussian blur to the grayscale frame
+    gray_frame_gau = cv2.GaussianBlur(gray_frame, (21, 21), 0)
+
     # Display the captured frame in a window titled "My Video"
-    cv2.imshow("My Video", frame)
+    cv2.imshow("My Video", gray_frame_gau)
 
     # Wait for a key press
     key = cv2.waitKey(1)
