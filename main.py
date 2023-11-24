@@ -1,5 +1,6 @@
 import cv2
 import time
+import glob
 from send_email import send_email
 
 # Initialize the video capture object
@@ -13,6 +14,9 @@ first_frame = None
 
 # List to store status for motion detection
 status_list = []
+
+# Counter for saved images
+count = 1
 
 # Infinite loop to continuously capture and display video frames
 while True:
@@ -61,8 +65,15 @@ while True:
                                   (x + w, y + h),
                                   (0, 255, 0),
                                   3)
+
+        # Save images with detected objects
         if rectangle.any:
             status = 1
+            cv2.imwrite(f"images/{count}.png", frame)
+            count = count + 1
+            all_images = glob.glob("images/*.png")
+            index = int(len(all_images) / 2)
+            image_with_object = all_images[index]
 
     # Append current status to the status list
     status_list.append(status)
