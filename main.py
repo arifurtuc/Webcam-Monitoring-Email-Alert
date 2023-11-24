@@ -3,6 +3,7 @@ import cv2
 import time
 import glob
 from send_email import send_email
+from threading import Thread
 
 # Initialize the video capture object
 video = cv2.VideoCapture(1)
@@ -93,8 +94,15 @@ while True:
 
     # Check for status change to trigger an email
     if status_list[0] == 1 and status_list[1] == 0:
-        send_email(image_with_object)
-        clean_folder()
+        email_thread = Thread(target=send_email, args=(image_with_object, ))
+        email_thread.daemon = True
+
+        clean_thread = Thread(target=clean_folder)
+        clean_thread.daemon = True
+
+        # Start threads for sending email and cleaning the images
+        email_thread.start()
+        clean_thread.start()
 
     # Display the captured frame in a window titled "My Video"
     cv2.imshow("My Video", frame)
