@@ -1,3 +1,4 @@
+import os
 import cv2
 import time
 import glob
@@ -17,6 +18,14 @@ status_list = []
 
 # Counter for saved images
 count = 1
+
+
+# Function to remove all .png files within the 'images' directory
+def clean_folder():
+    images = glob.glob("images/*.png")
+    for image in images:
+        os.remove(image)
+
 
 # Infinite loop to continuously capture and display video frames
 while True:
@@ -41,7 +50,10 @@ while True:
     delta_frame = cv2.absdiff(first_frame, gray_frame_gau)
 
     # Apply thresholding to the difference frame
-    thresh_frame = cv2.threshold(delta_frame, 65, 255, cv2.THRESH_BINARY)[1]
+    thresh_frame = cv2.threshold(delta_frame,
+                                 65,
+                                 255,
+                                 cv2.THRESH_BINARY)[1]
 
     # Dilate the threshold frame to better identify moving objects
     dil_frame = cv2.dilate(thresh_frame, None, iterations=2)
@@ -81,7 +93,8 @@ while True:
 
     # Check for status change to trigger an email
     if status_list[0] == 1 and status_list[1] == 0:
-        send_email()
+        send_email(image_with_object)
+        clean_folder()
 
     # Display the captured frame in a window titled "My Video"
     cv2.imshow("My Video", frame)
