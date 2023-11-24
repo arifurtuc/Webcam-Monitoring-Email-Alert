@@ -1,5 +1,6 @@
 import cv2
 import time
+from send_email import send_email
 
 # Initialize the video capture object
 video = cv2.VideoCapture(1)
@@ -10,8 +11,14 @@ time.sleep(1)
 # Variable to store very first frame as reference frame
 first_frame = None
 
+# List to store status for motion detection
+status_list = []
+
 # Infinite loop to continuously capture and display video frames
 while True:
+    # Initialize status for motion detection
+    status = 0
+
     # Read a frame from the video capture object
     check, frame = video.read()
 
@@ -49,7 +56,21 @@ while True:
         # Get the bounding box coordinates and draw a rectangle around
         # detected objects
         x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 3)
+        rectangle = cv2.rectangle(frame,
+                                  (x, y),
+                                  (x + w, y + h),
+                                  (0, 255, 0),
+                                  3)
+        if rectangle.any:
+            status = 1
+
+    # Append current status to the status list
+    status_list.append(status)
+    status_list = status_list[-2:]
+
+    # Check for status change to trigger an email
+    if status_list[0] == 1 and status_list[1] == 0:
+        send_email()
 
     # Display the captured frame in a window titled "My Video"
     cv2.imshow("My Video", frame)
@@ -63,5 +84,3 @@ while True:
 
 # Release the video capture object
 video.release()
-
-
