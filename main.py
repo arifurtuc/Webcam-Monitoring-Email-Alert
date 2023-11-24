@@ -7,6 +7,9 @@ video = cv2.VideoCapture(1)
 # Delay to allow the camera to start (1-second delay)
 time.sleep(1)
 
+# Variable to store very first frame as reference frame
+first_frame = None
+
 # Infinite loop to continuously capture and display video frames
 while True:
     # Read a frame from the video capture object
@@ -18,8 +21,38 @@ while True:
     # Apply Gaussian blur to the grayscale frame
     gray_frame_gau = cv2.GaussianBlur(gray_frame, (21, 21), 0)
 
+    # Check for the first frame to set the reference frame
+    if first_frame is None:
+        first_frame = gray_frame_gau
+
+    # Calculate the absolute difference between the current frame and the
+    # reference frame
+    delta_frame = cv2.absdiff(first_frame, gray_frame_gau)
+
+    # Apply thresholding to the difference frame
+    thresh_frame = cv2.threshold(delta_frame, 65, 255, cv2.THRESH_BINARY)[1]
+
+    # Dilate the threshold frame to better identify moving objects
+    dil_frame = cv2.dilate(thresh_frame, None, iterations=2)
+
+    # Find contours of objects in the dilated frame
+    contours, check = cv2.findContours(dil_frame,
+                                       cv2.RETR_EXTERNAL,
+                                       cv2.CHAIN_APPROX_SIMPLE)
+
+    # Iterate through identified contours
+    for contour in contours:
+        # Ignore small contours (noise)
+        if cv2.contourArea(contour) < 5000:
+            continue
+
+        # Get the bounding box coordinates and draw a rectangle around
+        # detected objects
+        x, y, w, h = cv2.boundingRect(contour)
+        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 3)
+
     # Display the captured frame in a window titled "My Video"
-    cv2.imshow("My Video", gray_frame_gau)
+    cv2.imshow("My Video", frame)
 
     # Wait for a key press
     key = cv2.waitKey(1)
